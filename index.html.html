@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔥 Mona Darling vs Don</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0d0d0d;
+    color: #f0e6e6;
+    min-height: 100vh;
+    padding: 1.5rem 1rem 4rem;
+  }
+
+  .game { max-width: 460px; margin: 0 auto; }
+
+  /* HEADER */
+  .header { text-align: center; margin-bottom: 1.8rem; }
+  .header h1 { font-size: 24px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+  .header p { font-size: 13px; color: #a07070; margin-top: 5px; }
+  .header .goal { display: inline-block; margin-top: 8px; font-size: 12px; background: #2a1010; color: #e88; padding: 4px 14px; border-radius: 99px; border: 1px solid #5a2020; }
+
+  /* SCOREBOARD */
+  .scoreboard { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.5rem; }
+  .score-card {
+    background: #1a1010;
+    border-radius: 16px;
+    padding: 1rem;
+    text-align: center;
+    border: 2px solid #2a1a1a;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    position: relative;
+  }
+  .score-card.active-turn {
+    border-color: #c0405a;
+    box-shadow: 0 0 18px rgba(192, 64, 90, 0.25);
+  }
+  .score-card .player-name { font-size: 13px; color: #a07070; margin-bottom: 4px; }
+  .score-card .score-val { font-size: 32px; font-weight: 700; color: #fff; }
+  .score-card .score-bar-wrap { height: 4px; background: #2a1a1a; border-radius: 99px; margin-top: 8px; overflow: hidden; }
+  .score-card .score-bar { height: 4px; background: linear-gradient(90deg, #c0405a, #e87090); border-radius: 99px; transition: width 0.4s ease; }
+  .turn-badge {
+    font-size: 11px;
+    background: #c0405a;
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 99px;
+    display: inline-block;
+    margin-top: 6px;
+  }
+
+  /* DECK SELECTOR */
+  .deck-label-row { font-size: 12px; color: #a07070; margin-bottom: 8px; text-align: center; }
+  .deck-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .deck-btn {
+    padding: 10px 6px;
+    border-radius: 12px;
+    border: 1.5px solid #2a1a1a;
+    background: #1a1010;
+    cursor: pointer;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #a07070;
+    transition: all 0.15s;
+  }
+  .deck-btn:hover { background: #221414; }
+  .deck-btn .deck-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+  .deck-btn .deck-pts { font-size: 11px; margin-top: 2px; display: block; opacity: 0.7; }
+  .deck-btn.sel-easy { border-color: #2e7d5a; color: #4ecb8a; background: #0d1f16; }
+  .deck-btn.sel-medium { border-color: #a06020; color: #f0a040; background: #1f1508; }
+  .deck-btn.sel-hard { border-color: #8a2040; color: #e87090; background: #1f080e; }
+
+  /* CARD AREA */
+  .card-area {
+    min-height: 210px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.2rem;
+  }
+
+  .empty-state { text-align: center; color: #5a3a3a; }
+  .empty-state .empty-icon { font-size: 48px; display: block; margin-bottom: 10px; }
+  .empty-state p { font-size: 15px; }
+
+  .card {
+    background: #1a0f0f;
+    border-radius: 18px;
+    padding: 1.6rem 1.4rem;
+    width: 100%;
+    text-align: center;
+    animation: slideUp 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .card.easy { border: 1.5px solid #2e5a3a; }
+  .card.easy::before { background: linear-gradient(90deg, #2e7d5a, #4ecb8a); }
+  .card.medium { border: 1.5px solid #5a3a10; }
+  .card.medium::before { background: linear-gradient(90deg, #a06020, #f0a040); }
+  .card.hard { border: 1.5px solid #6a1a2a; }
+  .card.hard::before { background: linear-gradient(90deg, #8a2040, #e87090); }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card .card-tag {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 12px;
+    border-radius: 99px;
+    display: inline-block;
+    margin-bottom: 14px;
+  }
+  .card.easy .card-tag { background: #0d1f16; color: #4ecb8a; }
+  .card.medium .card-tag { background: #1f1508; color: #f0a040; }
+  .card.hard .card-tag { background: #1f080e; color: #e87090; }
+
+  .card .card-text { font-size: 17px; color: #f0e0e0; line-height: 1.65; margin-bottom: 14px; }
+  .card .card-pts { font-size: 13px; color: #7a5050; }
+  .card .card-pts span { color: #e87090; font-weight: 600; }
+
+  /* COMPLETE BTN */
+  .btn-complete {
+    width: 100%;
+    background: #1a2e1a;
+    color: #4ecb8a;
+    border: 1.5px solid #2e5a3a;
+    border-radius: 12px;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 10px;
+    display: none;
+    transition: opacity 0.15s;
+  }
+  .btn-complete:hover { opacity: 0.85; }
+
+  /* ACTION BUTTONS */
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+  .btn-draw {
+    background: linear-gradient(135deg, #8a2040, #c0405a);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn-draw:hover { opacity: 0.88; }
+  .btn-draw:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-pass {
+    background: #1a1010;
+    color: #a07070;
+    border: 1.5px solid #2a1a1a;
+    border-radius: 12px;
+    padding: 13px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-pass:hover { background: #221414; }
+  .btn-pass:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* STATUS */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #7a5050;
+    padding: 0 2px;
+    margin-bottom: 1.2rem;
+  }
+
+  /* HISTORY */
+  .history { margin-top: 0.5rem; }
+  .history h3 { font-size: 13px; color: #7a5050; margin-bottom: 8px; }
+  .history-list { display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto; }
+  .history-item {
+    font-size: 12px;
+    color: #a07070;
+    background: #160c0c;
+    padding: 7px 12px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .hi-player { font-weight: 600; color: #e0b0b0; white-space: nowrap; }
+  .hi-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hi-done { color: #4ecb8a; font-weight: 600; white-space: nowrap; }
+  .hi-pass { color: #f0a040; white-space: nowrap; }
+
+  /* RESET */
+  .btn-reset {
+    width: 100%;
+    margin-top: 1.2rem;
+    background: transparent;
+    border: 1px solid #2a1a1a;
+    color: #5a3a3a;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .btn-reset:hover { color: #a07070; }
+
+  /* WINNER SCREEN */
+  .winner-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 2rem;
+  }
+  .winner-screen.show { display: flex; }
+  .winner-confetti { font-size: 56px; animation: bounce 0.6s infinite alternate; }
+  @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.15); } }
+  .winner-screen h2 { font-size: 28px; font-weight: 700; color: #fff; margin: 1rem 0 0.5rem; }
+  .winner-screen p { font-size: 16px; color: #e87090; margin-bottom: 0.3rem; }
+  .winner-screen .final-scores { margin: 1.2rem 0; background: #1a1010; border-radius: 14px; padding: 1rem 1.5rem; border: 1px solid #3a1a2a; }
+  .winner-screen .final-scores p { color: #f0e0e0; font-size: 15px; margin: 4px 0; }
+  .winner-screen .final-scores span { color: #e87090; font-weight: 700; }
+  .btn-play-again {
+    background: linear-gradient(135deg, #8a2040, #c0405a);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 36px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="game">
+  <div class="header">
+    <h1>🔥 Mona Darling vs Don</h1>
+    <p>Draw • Dare • Dominate</p>
+    <span class="goal">🏆 First to 20 points wins</span>
+  </div>
+
+  <div class="scoreboard">
+    <div class="score-card active-turn" id="p1card">
+      <div class="player-name">🌹 Mona Darling</div>
+      <div class="score-val" id="p1score">0</div>
+      <div class="score-bar-wrap"><div class="score-bar" id="p1bar" style="width:0%"></div></div>
+      <div class="turn-badge" id="p1badge">Your turn 💋</div>
+    </div>
+    <div class="score-card" id="p2card">
+      <div class="player-name">👑 Don</div>
+      <div class="score-val" id="p2score">0</div>
+      <div class="score-bar-wrap"><div class="score-bar" id="p2bar" style="width:0%"></div></div>
+      <div class="turn-badge" id="p2badge" style="display:none">Your turn 💋</div>
+    </div>
+  </div>
+
+  <div class="deck-label-row">Choose your decks</div>
+  <div class="deck-selector">
+    <button class="deck-btn sel-easy" onclick="toggleDeck('easy',this)" id="dbtn-easy">
+      <span class="deck-icon">🌿</span>Easy<span class="deck-pts">+1 pt</span>
+    </button>
+    <button class="deck-btn sel-medium" onclick="toggleDeck('medium',this)" id="dbtn-medium">
+      <span class="deck-icon">🔥</span>Medium<span class="deck-pts">+2 pts</span>
+    </button>
+    <button class="deck-btn sel-hard" onclick="toggleDeck('hard',this)" id="dbtn-hard">
+      <span class="deck-icon">💋</span>Hard<span class="deck-pts">+3 pts</span>
+    </button>
+  </div>
+
+  <div class="card-area" id="cardArea">
+    <div class="empty-state">
+      <span class="empty-icon">🃏</span>
+      <p>Pick a deck and draw!</p>
+    </div>
+  </div>
+
+  <button class="btn-complete" id="btnComplete" onclick="completeCard()">✅ Done! Earn points</button>
+
+  <div class="actions">
+    <button class="btn-draw" onclick="drawCard()" id="btnDraw">Draw Card 🎴</button>
+    <button class="btn-pass" onclick="passCard()" id="btnPass" disabled>Pass ❌</button>
+  </div>
+
+  <div class="status-bar">
+    <span id="passesLeft">Passes — Mona: 2 | Don: 2</span>
+    <span id="cardsLeft">Cards left: —</span>
+  </div>
+
+  <div class="history" id="historySection" style="display:none">
+    <h3>Round history</h3>
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+  <button class="btn-reset" onclick="resetGame()">↺ Reset game</button>
+</div>
+
+<!-- WINNER SCREEN -->
+<div class="winner-screen" id="winnerScreen">
+  <div class="winner-confetti">🏆</div>
+  <h2 id="winnerName">Mona Darling wins!</h2>
+  <p>You reached 20 points first!</p>
+  <div class="final-scores">
+    <p>🌹 Mona Darling — <span id="finalP1">0</span> pts</p>
+    <p>👑 Don — <span id="finalP2">0</span> pts</p>
+  </div>
+  <button class="btn-play-again" onclick="resetGame()">Play Again 🔥</button>
+</div>
+
+<script>
+const PLAYERS = ['Mona Darling', 'Don'];
+const GOAL = 20;
+
+const CARDS = {
+  easy: [
+    { text: "Kiss your partner on the neck for 20 seconds.", points: 1 },
+    { text: "Kiss slowly from their hand up to their cheek for 30 seconds.", points: 1 },
+    { text: "Give a 2-minute hand massage.", points: 1 },
+    { text: "Whisper something you love about their body.", points: 1 },
+    { text: "Feed each other something sweet.", points: 1 },
+    { text: "Slow dance together for one full song.", points: 1 },
+    { text: "Stare into each other's eyes for 1 minute without laughing.", points: 1 },
+    { text: "Trace your finger slowly along their arm for 30 seconds.", points: 1 },
+    { text: "Share your favourite memory together.", points: 1 },
+    { text: "Sit in their lap for the next 3 rounds.", points: 1 },
+    { text: "Give a compliment for every letter of their name.", points: 1 },
+    { text: "Write their name on their back with your finger — they have to guess it.", points: 1 },
+    { text: "Serenade your partner with a made-up love song — at least 3 lines!", points: 1 },
+    { text: "Hold hands and take 3 deep breaths together in silence.", points: 1 },
+    { text: "Tell your partner 3 things you noticed about them today.", points: 1 }
+  ],
+  medium: [
+    { text: "Kiss for 5 full minutes — no hands allowed.", points: 2 },
+    { text: "Give a 5-minute shoulder and back massage.", points: 2 },
+    { text: "Blindfold your partner and let them guess where you kiss them — 3 different spots.", points: 2 },
+    { text: "Make out for 5 minutes — your partner sets the pace, you follow.", points: 2 },
+    { text: "Slow dance with zero space between you for one full song.", points: 2 },
+    { text: "Whisper your favourite fantasy in their ear — in detail.", points: 2 },
+    { text: "Give a 4-minute foot and leg massage.", points: 2 },
+    { text: "Let your partner choose an outfit for you right now.", points: 2 },
+    { text: "Describe in detail what you find most attractive about them — don't stop talking for 2 minutes.", points: 2 },
+    { text: "Give the slowest possible kiss — no rushing, as slow as you can go.", points: 2 },
+    { text: "Let your partner style your hair however they want.", points: 2 },
+    { text: "Recreate your first date moment in 5 minutes.", points: 2 },
+    { text: "Whisper 5 things you love about them, one kiss between each.", points: 2 },
+    { text: "Make eye contact while holding their face and don't look away for 2 minutes.", points: 2 },
+    { text: "Trace their face slowly with your fingertips — eyes closed.", points: 2 }
+  ],
+  hard: [
+    { text: "Blindfold your partner and tease them with kisses for 5 minutes — they cannot touch you.", points: 3 },
+    { text: "Make out to music of their choice — minimum 5 minutes, they decide when it stops.", points: 3 },
+    { text: "Give a full body massage for 10 minutes.", points: 3 },
+    { text: "Tell your partner one thing you've always wanted to try together — be honest.", points: 3 },
+    { text: "With full consent, gently hold their hands back and kiss them for 5 minutes.", points: 3 },
+    { text: "Role play a scenario your partner whispers to you — go for 5 minutes.", points: 3 },
+    { text: "Do whatever your partner asks, within your agreed limits, for 5 minutes.", points: 3 },
+    { text: "Describe out loud, in detail, exactly what you want to do to them tonight.", points: 3 },
+    { text: "Take turns being completely in control — 4 minutes each, no interruptions.", points: 3 },
+    { text: "No-limits dare: your partner writes it on paper, you decide whether to accept before reading it out loud.", points: 3 },
+    { text: "Kiss your partner for 5 minutes — but they have to keep their eyes open the whole time.", points: 3 },
+    { text: "Whisper exactly what you're thinking about your partner right now — hold nothing back.", points: 3 },
+    { text: "Let your partner be completely in charge for the next 10 minutes — no questions, just yes.", points: 3 },
+    { text: "Kiss every part of their face slowly, one by one, for as long as it takes.", points: 3 },
+    { text: "Tell your partner your #1 secret fantasy — then ask theirs.", points: 3 }
+  ]
+};
+
+let state = {
+  turn: 0,
+  scores: [0, 0],
+  passes: [2, 2],
+  decks: { easy: true, medium: true, hard: true },
+  pool: [],
+  currentCard: null,
+  cardDrawn: false,
+  history: []
+};
+
+function buildPool() {
+  state.pool = [];
+  ['easy','medium','hard'].forEach(d => {
+    if(state.decks[d]) state.pool.push(...CARDS[d].map(c => ({...c, deck: d})));
+  });
+  shuffle(state.pool);
+}
+
+function shuffle(arr) {
+  for(let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function toggleDeck(deck, btn) {
+  const active = Object.values(state.decks).filter(Boolean).length;
+  if(state.decks[deck] && active === 1) return;
+  state.decks[deck] = !state.decks[deck];
+  btn.className = 'deck-btn' + (state.decks[deck] ? ' sel-'+deck : '');
+  buildPool();
+  state.currentCard = null;
+  state.cardDrawn = false;
+  clearCard();
+  updateUI();
+}
+
+function drawCard() {
+  if(!state.pool.length) buildPool();
+  if(!state.pool.length) return;
+  state.currentCard = state.pool.pop();
+  state.cardDrawn = true;
+  renderCard();
+  document.getElementById('btnDraw').disabled = true;
+  document.getElementById('btnPass').disabled = (state.passes[state.turn] <= 0);
+  document.getElementById('btnComplete').style.display = 'block';
+  updateUI();
+}
+
+function passCard() {
+  const p = state.turn;
+  if(state.passes[p] <= 0) return;
+  state.passes[p]--;
+  state.history.unshift({ player: PLAYERS[p], text: state.currentCard.text, result: 'pass' });
+  state.currentCard = null;
+  state.cardDrawn = false;
+  nextTurn();
+}
+
+function completeCard() {
+  const p = state.turn;
+  state.scores[p] += state.currentCard.points;
+  state.history.unshift({ player: PLAYERS[p], text: state.currentCard.text, result: 'done', pts: state.currentCard.points });
+  state.currentCard = null;
+  state.cardDrawn = false;
+  if(state.scores[p] >= GOAL) { showWinner(p); return; }
+  nextTurn();
+}
+
+function nextTurn() {
+  state.turn = state.turn === 0 ? 1 : 0;
+  document.getElementById('btnDraw').disabled = false;
+  document.getElementById('btnPass').disabled = true;
+  document.getElementById('btnComplete').style.display = 'none';
+  clearCard();
+  updateUI();
+}
+
+function clearCard() {
+  document.getElementById('cardArea').innerHTML = `
+    <div class="empty-state">
+      <span class="empty-icon">🃏</span>
+      <p>Draw a card!</p>
+    </div>`;
+}
+
+function renderCard() {
+  const c = state.currentCard;
+  const labels = { easy: 'Easy • +1 pt', medium: 'Medium • +2 pts', hard: 'Hard • +3 pts' };
+  document.getElementById('cardArea').innerHTML = `
+    <div class="card ${c.deck}">
+      <span class="card-tag">${labels[c.deck]}</span>
+      <p class="card-text">${c.text}</p>
+      <p class="card-pts">Complete to earn <span>${c.points} point${c.points>1?'s':''}</span></p>
+    </div>`;
+}
+
+function showWinner(p) {
+  document.getElementById('finalP1').textContent = state.scores[0];
+  document.getElementById('finalP2').textContent = state.scores[1];
+  const names = ['🌹 Mona Darling', '👑 Don'];
+  document.getElementById('winnerName').textContent = names[p] + ' wins!';
+  document.getElementById('winnerScreen').classList.add('show');
+}
+
+function updateUI() {
+  document.getElementById('p1score').textContent = state.scores[0];
+  document.getElementById('p2score').textContent = state.scores[1];
+  document.getElementById('p1bar').style.width = Math.min(100, (state.scores[0]/GOAL)*100) + '%';
+  document.getElementById('p2bar').style.width = Math.min(100, (state.scores[1]/GOAL)*100) + '%';
+
+  document.getElementById('p1card').className = 'score-card' + (state.turn===0 ? ' active-turn' : '');
+  document.getElementById('p2card').className = 'score-card' + (state.turn===1 ? ' active-turn' : '');
+  document.getElementById('p1badge').style.display = state.turn===0 ? 'inline-block' : 'none';
+  document.getElementById('p2badge').style.display = state.turn===1 ? 'inline-block' : 'none';
+
+  document.getElementById('passesLeft').textContent = `Passes — Mona: ${state.passes[0]} | Don: ${state.passes[1]}`;
+  document.getElementById('cardsLeft').textContent = `Cards left: ${state.pool.length}`;
+
+  if(state.cardDrawn && state.passes[state.turn] <= 0) {
+    document.getElementById('btnPass').disabled = true;
+  }
+
+  const hist = document.getElementById('historySection');
+  const list = document.getElementById('historyList');
+  if(state.history.length) {
+    hist.style.display = 'block';
+    list.innerHTML = state.history.slice(0,10).map(h => `
+      <div class="history-item">
+        <span class="hi-player">${h.player.split(' ')[0]}</span>
+        <span class="hi-text">${h.text.slice(0,45)}…</span>
+        <span class="${h.result==='done'?'hi-done':'hi-pass'}">${h.result==='done'?'+'+h.pts+'pts ✓':'skip'}</span>
+      </div>`).join('');
+  }
+}
+
+function resetGame() {
+  state = { turn: 0, scores: [0,0], passes: [2,2], decks: { easy:true, medium:true, hard:true }, pool: [], currentCard: null, cardDrawn: false, history: [] };
+  ['easy','medium','hard'].forEach(d => {
+    document.getElementById('dbtn-'+d).className = 'deck-btn sel-'+d;
+  });
+  document.getElementById('winnerScreen').classList.remove('show');
+  document.getElementById('btnDraw').disabled = false;
+  document.getElementById('btnPass').disabled = true;
+  document.getElementById('btnComplete').style.display = 'none';
+  document.getElementById('historySection').style.display = 'none';
+  buildPool();
+  clearCard();
+  updateUI();
+}
+
+buildPool();
+updateUI();
+</script>
+</body>
+</html>
